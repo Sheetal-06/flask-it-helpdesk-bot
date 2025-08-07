@@ -1,88 +1,82 @@
-from flask import Flask, render_template, request, jsonify, session
-from flask_session import Session
-import os
+from flask import Flask, render_template, request, jsonify
 
 app = Flask(__name__)
-app.secret_key = "your-secret-key"  # Change to a secure key in production
-app.config["SESSION_TYPE"] = "filesystem"
-Session(app)
 
 def get_response(user_input):
-    user_input = user_input.lower()
-    state = session.get("state", None)
+    user_input = user_input.lower().strip()
 
-    # Handle follow-up for reset password
-    if state == "awaiting_reset_confirmation":
-        if user_input in ["yes", "y", "yeah", "yep", "sure"]:
-            session.pop("state", None)
-            return ("🔒 To reset your password:<br>"
-                    "Press <strong>Ctrl + Alt + Delete</strong>, then select <strong>‘Change a password’</strong>.")
-        else:
-            session.pop("state", None)
-            return ("Okay! Please pick an option from my menu — I'm still learning and will be able to help with more issues soon! 😊")
+    # Greeting
+    if any(greet in user_input for greet in ["hi", "hello", "hey", "good morning", "good afternoon", "good evening"]):
+        return "Hello! 👋 How can I assist you with IT today?"
 
-    # Handle follow-up for soundbar
-    if state == "awaiting_soundbar_confirmation":
-        if user_input in ["yes", "y", "yeah", "yep", "sure"]:
-            session.pop("state", None)
-            return ("🔊 For soundbar issues:<br>"
-                    "1️⃣ Make sure the soundbar is switched on.<br>"
-                    "2️⃣ Check if it’s flashing green — that means it’s trying to connect.<br>"
-                    "3️⃣ Ensure it’s paired with the correct device.")
-        else:
-            session.pop("state", None)
-            return ("No problem! Please choose from the menu — I’m learning more every day! 😊")
-
-    # Handle user saying thanks
+    # Polite thanks
     if any(phrase in user_input for phrase in ["thank you", "thanks", "thx", "ty"]):
-        session["state"] = "awaiting_further_help"
-        return ("You're very welcome! 😊 Do you need any more help? (yes/no)")
+        return "You're very welcome! 😊 Do you need any more help today?"
 
-    # Handle if user says yes or no after thanks
-    if state == "awaiting_further_help":
-        if user_input in ["yes", "y", "yeah", "yep", "sure"]:
-            session.pop("state", None)
-            return ("Great! How can I assist you further?")
-        else:
-            session.pop("state", None)
-            return ("No worries! Have a wonderful day! 🌟😊")
-
-    # No active state, detect keywords and ask confirmation if needed
-    if "reset" in user_input or "password" in user_input:
-        session["state"] = "awaiting_reset_confirmation"
-        return "Do you need help with resetting your password? (yes/no)"
+    # Separate follow-ups for reset password and soundbar
+    if "reset" in user_input or "reset password" in user_input:
+        return "Okay, do you need help with resetting your password? Please reply 'yes' or 'no'."
 
     if "soundbar" in user_input:
-        session["state"] = "awaiting_soundbar_confirmation"
-        return "Are you having issues with your soundbar? (yes/no)"
+        return "Okay, do you need help with soundbar issues? Please reply 'yes' or 'no'."
 
-    # Other common responses
+    # Follow-up yes/no answer after reset or soundbar question
+    if user_input in ["yes", "yeah", "yep", "sure", "of course"]:
+        return ("Great! Here’s what to do:<br>"
+                "- For resetting password: Press Ctrl + Alt + Del, then choose 'Change Password' and follow the prompts.<br>"
+                "- For soundbar issues: Make sure the soundbar is switched on and the connection light is flashing green.")
+
+    if user_input in ["no", "nah", "nope"]:
+        return ("Okay, please pick an option from my menu — I'm still learning new issues and will assist more soon! 😊")
+
+    # Projector help
+    if "projector" in user_input:
+        response = ("To fix projector display issues:<br>"
+                    "1️⃣ Press Windows + P and select 'Duplicate' to mirror your screen.<br>"
+                    "2️⃣ Make sure the projector is switched ON.<br>"
+                    "3️⃣ Check if the projector has a power light.<br>"
+                    "If there is NO light on the projector, it’s likely a power issue — please arrange for it to be checked.<br>"
+                    "If none of these help, please <a href='https://mail.google.com/mail/?view=cm&fs=1&to=helpdesk@dgc.co.za' target='_blank'>email the helpdesk</a> and they’ll assist you further.")
+        return response
+
+    # Printing help
+    if "print" in user_input or "printing" in user_input:
+        return ("If you can’t print, have you checked your printing credits?<br>"
+                "If you need credits, please <a href='mailto:helpdesk@dgc.co.za?subject=Request%20for%20Printing%20Credits&body=Hi,%0APlease%20may%20I%20have%20printing%20credits.%0AThank%20you!' target='_blank'>email the helpdesk to request printing credits</a>.")
+
+    # Common responses
     if "wifi" in user_input or "internet" in user_input:
-        return ("📶 For Wi-Fi issues:<br>"
-                "1️⃣ Forget the school Wi-Fi network.<br>"
-                "2️⃣ Reconnect using your school username and password.<br>"
-                "3️⃣ When asked for a CA Certificate, choose <strong>‘Do Not Validate’</strong>.<br>"
-                "✅ You should now be connected!")
+        return ("For Wi-Fi issues:<br>"
+                "1️⃣ Forget the network and reconnect.<br>"
+                "2️⃣ Enter your username and password.<br>"
+                "3️⃣ For CA certificate, select 'Don't validate'.<br>"
+                "You should now be connected.")
 
     if "printer" in user_input:
-        return ("🖨️ For printer problems:<br>"
-                "- Ensure the printer has paper and toner.<br>"
-                "- Confirm you’re on the correct school Wi-Fi.<br>"
-                "- Try restarting the printer.")
+        return ("For printer problems:<br>"
+                "- Check that the printer has paper and toner.<br>"
+                "- Make sure you’re connected to the school Wi-Fi.<br>"
+                "- Restart the printer if needed.")
 
     if "email" in user_input:
-        return ("📧 For email issues:<br>"
-                "- Visit <a href='https://outlook.office.com' target='_blank'>Outlook Web</a>.<br>"
-                "- Use your school login credentials.<br>"
-                "- If forgotten, reset your password.")
+        return ("For email help:<br>"
+                "- Visit <a href='https://mail.google.com' target='_blank'>Gmail Webmail</a>.<br>"
+                "- Log in with your school email and password.<br>"
+                "- Reset your password if you forgot it.")
 
-    # Default fallback - super friendly
-    return ("🤖 I'm sorry, I’m not quite sure about that. But no worries! You can always log a ticket by emailing <a href='mailto:helpdesk@dgc.co.za'>helpdesk@dgc.co.za</a>.<br>"
-            "We're here to help you as best we can! Feel free to ask about resetting passwords, Wi-Fi, printers, soundbars, or email access. 😊")
+    # Friendly fallback for unknown queries
+    return (
+        "I'm not sure about that 🤔, but you can "
+        "<a href='https://mail.google.com/mail/?view=cm&fs=1&to=helpdesk@dgc.co.za' target='_blank'>"
+        "email helpdesk@dgc.co.za via Gmail</a>.<br>"
+        "Thanks for your patience while I keep learning! 😊"
+    )
+
 
 @app.route("/")
 def home():
     return render_template("chat.html")
+
 
 @app.route("/get", methods=["POST"])
 def chat():
@@ -90,7 +84,6 @@ def chat():
     response = get_response(user_input)
     return jsonify({"response": response})
 
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=True)
 
+if __name__ == "__main__":
+    app.run(debug=True)
