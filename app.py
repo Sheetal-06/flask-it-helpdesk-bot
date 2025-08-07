@@ -41,8 +41,12 @@ def get_response(user_input):
 
     # Printing help
     if "print" in user_input or "printing" in user_input:
-        return ("If you can’t print, have you checked your printing credits?<br>"
-                "If you need credits, please <a href='mailto:helpdesk@dgc.co.za?subject=Request%20for%20Printing%20Credits&body=Hi,%0APlease%20may%20I%20have%20printing%20credits.%0AThank%20you!' target='_blank'>email the helpdesk to request printing credits</a>.")
+        return (
+            "If you can’t print, have you checked your printing credits?<br>"
+            "If you need credits, please "
+            "<a href='https://mail.google.com/mail/?view=cm&fs=1&to=helpdesk@dgc.co.za&su=Request%20for%20Printing%20Credits&body=Hi,%0APlease%20may%20I%20have%20printing%20credits.%0AThank%20you!' target='_blank'>"
+            "email the helpdesk via Gmail</a>."
+        )
 
     # Common responses
     if "wifi" in user_input or "internet" in user_input:
@@ -77,9 +81,11 @@ def get_response(user_input):
         "I’m learning more every day! 🐣✨"
     )
 
+
 @app.route("/")
 def home():
     return render_template("chat.html")
+
 
 @app.route("/get", methods=["POST"])
 def chat():
@@ -87,7 +93,9 @@ def chat():
     response = get_response(user_input)
     return jsonify({"response": response})
 
+
 if __name__ == "__main__":
     import os
-    port = int(os.environ.get("PORT", 5000))  # Use env PORT or default 5000
+    port = int(os.environ.get("PORT", 5000))  # Use environment port if available, else 5000
     app.run(host="0.0.0.0", port=port, debug=True)
+
