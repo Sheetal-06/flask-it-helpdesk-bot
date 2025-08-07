@@ -66,17 +66,20 @@ def get_response(user_input):
 
     # Friendly fallback for unknown queries
     return (
-        "I'm not sure about that 🤔, but you can "
-        "<a href='https://mail.google.com/mail/?view=cm&fs=1&to=helpdesk@dgc.co.za' target='_blank'>"
-        "email helpdesk@dgc.co.za via Gmail</a>.<br>"
-        "Thanks for your patience while I keep learning! 😊"
+        "🤔 Hmm... I don't know that yet!<br>"
+        "But no worries! 💡 Try picking something from my menu or asking about:<br>"
+        "🖥️ Projectors<br>"
+        "🖨️ Printing<br>"
+        "🔒 Password resets<br>"
+        "🔊 Soundbar help<br>"
+        "📧 Or you can just send an email to the helpdesk right here:<br>"
+        "<a href='https://mail.google.com/mail/?view=cm&fs=1&to=helpdesk@dgc.co.za' target='_blank'>📬 Click to email Helpdesk</a><br><br>"
+        "I’m learning more every day! 🐣✨"
     )
-
 
 @app.route("/")
 def home():
     return render_template("chat.html")
-
 
 @app.route("/get", methods=["POST"])
 def chat():
@@ -84,6 +87,7 @@ def chat():
     response = get_response(user_input)
     return jsonify({"response": response})
 
-
 if __name__ == "__main__":
-    app.run(debug=True)
+    import os
+    port = int(os.environ.get("PORT", 5000))  # Use env PORT or default 5000
+    app.run(host="0.0.0.0", port=port, debug=True)
